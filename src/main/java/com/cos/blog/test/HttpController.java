@@ -15,6 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HttpController {
 	
+	@GetMapping("/http/lombok")
+	public String lombokTest() {
+		Member m = Member.builder().username("ssar").password("1234").email("ssar@nate.com").build();
+		
+		System.out.println(m.getId());
+		return "lombok test 완료";
+	}
+	
 	//인터넷 브라우저 요청은 무조건 get요청밖에 할 수 없다.
 	//http://localhost:8080/http/get
 	@GetMapping("/http/get")
