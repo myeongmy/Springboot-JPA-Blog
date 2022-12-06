@@ -29,6 +29,17 @@ public class UserService {
 			userRepository.save(user);    //Exception이 일어나면 GlobalExceptionHandler에서 처리해주므로 따로 에러 처리할 필요 없다.
 	}
 	
+	@Transactional
+	public void 회원수정(User user) {
+		User persistence = userRepository.findById(user.getId()).orElseThrow(() -> {
+			return new IllegalArgumentException("회원 찾기 실패");
+		});
+		persistence.setPassword(encoder.encode(user.getPassword()));
+		persistence.setEmail(user.getEmail());
+		
+		// 회원수정 함수 종료시 = 서비스 종료 = 트랜잭션 종료 = commit이 자동으로 된다.
+		// 영속화된 persistence 객체의 변화가 감지되면 더티체킹이 되어 DB flush 일어난다.
+	}
 //	@Transactional(readOnly = true)  //select 할 때 트랜잭션 시작, 서비스 종료시에 트랜잭션 종료 (데이터 정합성 유지)
 //	public User 로그인(User user) {
 //		return userRepository.findByUsernameAndPassword(user.getUsername(), user.getPassword());
