@@ -33,7 +33,7 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)   // 프로젝트에서 연결된 DB의 넘버링 전략을 따라간다.
 	private int id;       //시퀀스(오라클), auto_increment(MySQL)
 	
-	@Column(unique = true, nullable = false, length = 30)
+	@Column(unique = true, nullable = false, length = 100)
 	private String username;  //아이디
 	
 	@Column(nullable = false, length = 100)     // 123456 => 해쉬 (비밀번호 암호화하여 DB 저장)
@@ -45,6 +45,8 @@ public class User {
 	// @ColumnDefault("user")
 	@Enumerated(EnumType.STRING)   //DB는 RoleType이란 자료형이 없기 때문에 해당 type이 string이라는 것을 명시해주어야함
 	private  RoleType role;     // Enum을 쓰는게 좋다. //admin, user, manager (Enum을 활용하면 데이터의 도메인을 설정할 수 있다)
+	
+	private String oauth;   // kakao, naver, 일반 로그인 구분
 	
 	@CreationTimestamp       // 시간이 자동 입력
 	private Timestamp createDate;
