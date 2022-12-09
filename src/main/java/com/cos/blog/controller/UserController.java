@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
 import com.cos.blog.model.KakaoProfile;
+import com.cos.blog.model.NaverProfile;
+import com.cos.blog.model.NaverToken;
 import com.cos.blog.model.OAuthToken;
 import com.cos.blog.model.RoleType;
 import com.cos.blog.model.User;
@@ -150,6 +152,68 @@ public class UserController {
 		
 		// 로그인 처리
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		
+		return "redirect:/";
+	}
+	
+	@GetMapping("/auth/naver/callback")
+	public String naverCallback(String code, String state) {
+		// callback으로 전달받은 code 정보로 access token 발급 요청
+		RestTemplate rt = new RestTemplate();
+		
+		ResponseEntity<String> naverTokenResponse = rt.exchange(
+				"https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=HU0TkhbXfbZ0soHwXpW5&client_secret=ZfQe3nTmWR&code="+code+"&state="+state, 
+				HttpMethod.GET,
+				null,
+				String.class);
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		NaverToken naverToken = null;
+		
+		try {
+			naverToken = objectMapper.readValue(naverTokenResponse.getBody(), NaverToken.class);
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		
+		// access token을 이용하여 프로필 api 호출
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", naverToken.getToken_type() + " " + naverToken.getAccess_token());
+		
+		HttpEntity<MultiValueMap<String, String>> naverProfileRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> naverProfileResponse = rt.exchange(
+				"https://openapi.naver.com/v1/nid/me",
+				HttpMethod.POST,
+				naverProfileRequest,
+				String.class
+		);
+		
+		ObjectMapper objectMapper2 = new ObjectMapper();
+		NaverProfile naverProfile = null;
+		try {
+			naverProfile = objectMapper2.readValue(naverProfileResponse.getBody(), NaverProfile.class);
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		
+		// naver로 부터 얻은 프로필 정보를 이용한 회원가입
+		String username = naverProfile.getResponse().getName() + "_" + naverProfile.getResponse().getId();
+		String password = cosKey;
+		String email = naverProfile.getResponse().getEmail();
+		String oauth = "naver";
+		
+		User user = userService.회원찾기(username);
+		if(user == null) {
+			userService.회원가입(User.builder().username(username).password(password).email(email).oauth(oauth).build());
+		}
+		
+		// 로그인 처리
+		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		
 		return "redirect:/";

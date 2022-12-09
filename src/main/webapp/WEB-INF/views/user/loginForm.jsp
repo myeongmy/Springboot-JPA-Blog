@@ -15,6 +15,7 @@
 		</div>
 		<button id="btn-login" class="btn btn-primary">로그인</button>
 		<a href="https://kauth.kakao.com/oauth/authorize?client_id=5c3c14dd9b727874ca9dd269670816cc&redirect_uri=http://localhost:8000/auth/kakao/callback&response_type=code"><img height="38px" src="/image/kakao_login_button.png"/></a>
+		<a href="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=HU0TkhbXfbZ0soHwXpW5&state=STATE_STRING&redirect_uri=http://localhost:8000/auth/naver/callback"><img width = "76px" height="38px" src="/image/naver_login_button.png"/></a>
 	</form>
 
 </div>
