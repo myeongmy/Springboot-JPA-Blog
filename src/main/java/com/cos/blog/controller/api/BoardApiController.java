@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cos.blog.config.auth.PrincipalDetail;
 import com.cos.blog.dto.ResponseDto;
 import com.cos.blog.model.Board;
+import com.cos.blog.model.Reply;
 import com.cos.blog.service.BoardService;
 
 @RestController
@@ -38,6 +39,13 @@ public class BoardApiController {
 	@PutMapping("/api/board/{id}")
 	public ResponseDto<Integer> update(@PathVariable int id, @RequestBody Board board){
 		boardService.글수정하기(id, board);
+		return new ResponseDto<Integer>(HttpStatus.OK.value(), 1);
+	}
+	
+	// 댓글 작성 시 컨트롤러 단에서 Dto로 받아주는 것이 좋다.
+	@PostMapping("/api/board/{boardId}/reply")
+	public ResponseDto<Integer> replySave(@PathVariable int boardId, @RequestBody Reply reply, @AuthenticationPrincipal PrincipalDetail principal){
+		boardService.댓글쓰기(boardId, reply, principal.getUser());
 		return new ResponseDto<Integer>(HttpStatus.OK.value(), 1);
 	}
 
