@@ -1,6 +1,12 @@
 package com.cos.blog.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,6 +24,8 @@ import com.cos.blog.repository.ReplyRepository;
 @Service
 public class BoardService {
 
+	private final static String VIEWCOOKIENAME = "alreadyViewCookie" ;
+	
 	@Autowired
 	private BoardRepository boardRepository;
 	
@@ -43,6 +51,27 @@ public class BoardService {
 		});
 	}
 
+	@Transactional
+	public void 조회수증가(int id, HttpServletRequest request, HttpServletResponse response) {
+		Cookie[] cookies = request.getCookies();
+		boolean checkCookie = false;
+		int result = 0;
+		if(cookies != null) {
+			for(Cookie cookie : cookies) {
+				if(cookie.getName().equals(VIEWCOOKIENAME + id)) checkCookie = true;
+			}
+			if(!checkCookie) {
+				Cookie newCookie = createCookieForNotOverlap(id);
+				response.addCookie(newCookie);
+				result = boardRepository.updateCount(id);
+			}
+		}else {
+			Cookie newCookie = createCookieForNotOverlap(id);
+			response.addCookie(newCookie);
+			result = boardRepository.updateCount(id);
+		}
+	}
+	
 	@Transactional
 	public void 글삭제하기(int id) {
 		boardRepository.deleteById(id);
@@ -75,6 +104,21 @@ public class BoardService {
 	@Transactional
 	public void 댓글삭제(int replyId) {
 		replyRepository.deleteById(replyId);
+	}
+	
+	private Cookie createCookieForNotOverlap(int id) {
+		Cookie cookie = new Cookie(VIEWCOOKIENAME + id, String.valueOf(id));
+		cookie.setComment("조회수 중복 증가 방지 쿠키");
+		cookie.setMaxAge(getRemainSecondForTomorrow());
+		cookie.setHttpOnly(true);
+		return cookie;
+	}
+	
+	// 다음날 정각까지 남은 시간(초)
+	private int getRemainSecondForTomorrow() {
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime tomorrow = LocalDateTime.now().plusDays(1L).truncatedTo(ChronoUnit.DAYS);
+		return (int) now.until(tomorrow, ChronoUnit.SECONDS);
 	}
 
 }

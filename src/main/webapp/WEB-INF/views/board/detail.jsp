@@ -10,7 +10,7 @@
 	</c:if>
 	<br /> <br />
 	<div>
-		글 번호: <span id="id"><i>${board.id} </i></span> 작성자: <span><i>${board.user.username} </i></span>
+		글 번호: <span id="id"><i>${board.id} </i></span> 작성자: <span><i>${board.user.username} </i></span> 조회수: <span><i>${board.count }</i></span>
 	</div>
 	<br />
 	<div class="form-group">
